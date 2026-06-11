@@ -1,5 +1,7 @@
 import { router, publicProcedure } from "./trpc.js";
 import { z } from "zod";
+import axios from "Axios";
+
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
@@ -16,11 +18,13 @@ export const appRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      console.log("Saving preinterview GitHub URL:", input.github);
-      return {
-        success: true,
-        github: input.github,
-      };
+      process.env.NODE_ENV === "development" && console.log("Saving preinterview GitHub URL:", input.github);
+      //TODO: URL can be malformed, make an SLM call to check what is behind the link before proceding.
+      const githubURL = input.github.endsWith("/") ? input.github.slice(0, - 1) : input.github;
+      const githubUsername = githubURL.split("/").pop();
+
+
+      const userRepos = await axios.get(`https://api.github.com/users/${githubUsername}/repos`)
     }),
 });
 
