@@ -1,6 +1,6 @@
 import { router, publicProcedure } from "./trpc.js";
 import { z } from "zod";
-import axios from "Axios";
+import { fetchUserRepositories } from "./scraper/github.js";
 
 
 export const appRouter = router({
@@ -23,14 +23,9 @@ export const appRouter = router({
       const githubURL = input.github.endsWith("/") ? input.github.slice(0, - 1) : input.github;
       const githubUsername = githubURL.split("/").pop();
 
-
-      const userRepos = await axios.get(`https://api.github.com/users/${githubUsername}/repos`)
-      const filterResponse = userRepos.data.map((x: any) => ({
-        description: x.description,
-        name: x.name,
-        fullName: x.full_name,
-        starCount: x.stargazers_count,
-      }));
+      if (githubUsername) {
+        const filterResponse = await fetchUserRepositories(githubUsername);
+      }
     }),
 });
 
