@@ -25,6 +25,12 @@ export const appRouter = router({
 
 
       const userRepos = await axios.get(`https://api.github.com/users/${githubUsername}/repos`)
+      const filterResponse = userRepos.data.map((x: any) => ({
+        description: x.description,
+        name: x.name,
+        fullName: x.full_name,
+        starCount: x.stargazers_count,
+      }));
     }),
 });
 
