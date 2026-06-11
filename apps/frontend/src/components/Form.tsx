@@ -7,6 +7,7 @@ import { trpcClient } from "../lib/trpc";
 
 export function Form() { 
   const [github, setGithub] = useState("")
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate();
 
   async function onSubmit(e?: React.MouseEvent<HTMLButtonElement>) { 
@@ -16,6 +17,8 @@ export function Form() {
       toast("Please provide valid github URL")
       return;
     }
+
+    setLoading(true);
 
     try {
       const response = await trpcClient.preinterview.mutate({ github });
@@ -40,7 +43,7 @@ export function Form() {
         <div className="space-y-4">
           <Input placeholder="Github URL"  className="p-4" onChange={(e) => setGithub(e.target.value)}/>
           <div className="flex justify-center items-center p-4">
-            <Button onClick = {onSubmit}>Start Interview</Button>
+            <Button disabled={loading} onClick={onSubmit}>{loading ? "Starting Interview....." : "Start Interview"}</Button>
           </div>
         </div>
       </form>

@@ -11,7 +11,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<Form />} />
         <Route path="/interview/:id" element={<Interview />} />
-        <Route path="/result" element={<Result />} />
+        <Route path="/result/:id" element={<Result />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster position="bottom-left"/>
