@@ -19,9 +19,12 @@ export function Form() {
 
     try {
       const response = await trpcClient.preinterview.mutate({ github });
+      if (!response || !response.id) {
+        throw new Error("Invalid response from server: Missing interview ID");
+      }
       toast.success("GitHub URL submitted successfully!");
       console.log("Pre-interview response:", response);
-      navigate(`/interview?url=${encodeURIComponent(github)}`);
+      navigate(`/interview/${response.id}?url=${encodeURIComponent(github)}`);
     } catch (error) {
       console.error("Failed to submit GitHub URL:", error);
       toast.error("Failed to submit GitHub URL. Please try again.");

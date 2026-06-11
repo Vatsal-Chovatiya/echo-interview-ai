@@ -10,7 +10,7 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Form />} />
-        <Route path="/interview" element={<Interview />} />
+        <Route path="/interview/:id" element={<Interview />} />
         <Route path="/result" element={<Result />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

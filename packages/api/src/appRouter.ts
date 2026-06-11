@@ -27,13 +27,18 @@ export const appRouter = router({
 
       if (githubUsername) {
         const filterResponse = await fetchUserRepositories(githubUsername);
-        return ({
-          github: filterResponse
-        })
-      }
 
-     
-      
+        const interview = await client.interview.create({
+          data: {
+            githubMetaData: JSON.stringify(filterResponse),
+            status: "Pre"
+        }
+        })
+        
+        return ({
+        id: interview.id
+      })
+      }
     }),
 });
 
