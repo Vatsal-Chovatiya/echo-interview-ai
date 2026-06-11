@@ -1,1 +1,1 @@
-echo-interview-ai
+DOCS: https://developers.openai.com/api/docs/guides/realtime-webrtc

@@ -10,15 +10,13 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Form />} />
-        <Route path="/interview/:id" element={<Interview />} />
-        <Route path="/result/:id" element={<Result />} />
+        <Route path="/interview/:interviewId" element={<Interview />} />
+        <Route path="/result/:interviewId" element={<Result />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <Toaster position="bottom-left"/>
+      <Toaster position="bottom-left" />
     </BrowserRouter>
-    
   );
 }
 
 export default App;
-

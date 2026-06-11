@@ -5,16 +5,16 @@ import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import { trpcClient } from "../lib/trpc";
 
-export function Form() { 
-  const [github, setGithub] = useState("")
-  const [loading, setLoading] = useState(false)
+export function Form() {
+  const [github, setGithub] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  async function onSubmit(e?: React.MouseEvent<HTMLButtonElement>) { 
+  async function onSubmit(e?: React.MouseEvent<HTMLButtonElement>) {
     if (e) e.preventDefault();
-    if (!github) { 
+    if (!github) {
       // TODO: Add more validation here
-      toast("Please provide valid github URL")
+      toast("Please provide valid github URL");
       return;
     }
 
@@ -41,9 +41,15 @@ export function Form() {
           Echo AI interviewer
         </h1>
         <div className="space-y-4">
-          <Input placeholder="Github URL"  className="p-4" onChange={(e) => setGithub(e.target.value)}/>
+          <Input
+            placeholder="Github URL"
+            className="p-4"
+            onChange={(e) => setGithub(e.target.value)}
+          />
           <div className="flex justify-center items-center p-4">
-            <Button disabled={loading} onClick={onSubmit}>{loading ? "Starting Interview....." : "Start Interview"}</Button>
+            <Button disabled={loading} onClick={onSubmit}>
+              {loading ? "Starting Interview....." : "Start Interview"}
+            </Button>
           </div>
         </div>
       </form>

@@ -3,8 +3,6 @@ import { z } from "zod";
 import { fetchUserRepositories } from "./scraper/github.js";
 import { client } from "@repo/db";
 
-
-
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
     return {
@@ -20,9 +18,12 @@ export const appRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      process.env.NODE_ENV === "development" && console.log("Saving preinterview GitHub URL:", input.github);
+      process.env.NODE_ENV === "development" &&
+        console.log("Saving preinterview GitHub URL:", input.github);
       //TODO: URL can be malformed, make an SLM call to check what is behind the link before proceding.
-      const githubURL = input.github.endsWith("/") ? input.github.slice(0, - 1) : input.github;
+      const githubURL = input.github.endsWith("/")
+        ? input.github.slice(0, -1)
+        : input.github;
       const githubUsername = githubURL.split("/").pop();
 
       if (githubUsername) {
@@ -31,13 +32,13 @@ export const appRouter = router({
         const interview = await client.interview.create({
           data: {
             githubMetaData: JSON.stringify(filterResponse),
-            status: "Pre"
-        }
-        })
-        
-        return ({
-        id: interview.id
-      })
+            status: "Pre",
+          },
+        });
+
+        return {
+          id: interview.id,
+        };
       }
     }),
 });

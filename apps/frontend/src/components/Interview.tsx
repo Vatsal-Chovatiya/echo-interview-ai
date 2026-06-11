@@ -1,25 +1,49 @@
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 
-export function Interview() { 
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const url = searchParams.get("url") || "";
+export function Interview() {
+  const { interviewId } = useParams();
+  const audioRef = useRef<HTMLAudioElement>(null)
 
-  return (
-    <div className="h-screen w-screen flex flex-col justify-center items-center gap-6 p-4">
-      <div className="max-w-md text-center space-y-4">
-        <h1 className="text-3xl font-extrabold tracking-tight">Active Interview Session</h1>
-        <p className="text-muted-foreground">
-          Analyzing repository:
-        </p>
-        <div className="p-3 bg-muted rounded-md text-sm font-mono break-all border">
-          {url || "No URL provided"}
-        </div>
-        <div className="pt-4">
-          <Button onClick={() => navigate("/result")}>Complete Interview</Button>
-        </div>
-      </div>
-    </div>
-  );
+  useEffect(() => {
+
+    (async () => {
+      
+    // Create a peer connection
+    const pc = new RTCPeerConnection();
+
+    // Set up to play remote audio from the model
+    audioRef.current = document.createElement("audio");
+    audioRef.current.autoplay = true;
+    pc.ontrack = (e) => (audioRef.current!.srcObject = e.streams[0]!);
+
+    // Add local audio track for microphone input in the browser
+    const ms = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+    pc.addTrack(ms.getTracks()[0]!);
+
+    // Start the session using the Session Description Protocol (SDP)
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    const sdpResponse = await fetch("/session", {
+      method: "POST",
+      body: offer.sdp,
+      headers: {
+        "Content-Type": "application/sdp",
+      },
+    });
+
+    const answer = {
+      type: "answer" as const,
+      sdp: await sdpResponse.text(),
+    };
+    await pc.setRemoteDescription(answer);
+  
+    })()
+  }, [interviewId]);
+
+  return <div><audio autoPlay></audio>Interview</div>;
 }
