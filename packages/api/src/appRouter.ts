@@ -1,6 +1,8 @@
 import { router, publicProcedure } from "./trpc.js";
 import { z } from "zod";
 import { fetchUserRepositories } from "./scraper/github.js";
+import { client } from "@repo/db";
+
 
 
 export const appRouter = router({
@@ -25,7 +27,13 @@ export const appRouter = router({
 
       if (githubUsername) {
         const filterResponse = await fetchUserRepositories(githubUsername);
+        return ({
+          github: filterResponse
+        })
       }
+
+     
+      
     }),
 });
 
