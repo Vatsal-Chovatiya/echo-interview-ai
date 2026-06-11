@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { router, publicProcedure } from "./trpc.js";
 import { z } from "zod";
 import { fetchUserRepositories } from "./scraper/github.js";
@@ -39,6 +40,47 @@ export const appRouter = router({
         return {
           id: interview.id,
         };
+      }
+    }),
+
+  session: publicProcedure
+    .input(
+      z.object({
+        sdp: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const sessionConfig = JSON.stringify({
+        type: "realtime",
+        model: "gpt-realtime-2",
+        audio: { output: { voice: "marin" } },
+      });
+
+      const fd = new FormData();
+      fd.set("sdp", input.sdp);
+      fd.set("session", sessionConfig);
+
+      try {
+        const r = await fetch("https://api.openai.com/v1/realtime/calls", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            "OpenAI-Safety-Identifier": "hashed-user-id",
+          },
+          body: fd,
+        });
+        // Send back the SDP we received from the OpenAI REST API
+        const sdp = await r.text();
+        return ({
+          sdp
+        })
+      } catch (error) {
+        console.error("Token generation error:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to generate token",
+          cause: error,
+        });
       }
     }),
 });

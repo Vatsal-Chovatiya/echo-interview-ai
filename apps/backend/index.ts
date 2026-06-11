@@ -20,6 +20,8 @@ app.use(
   createExpressMiddleware({ router: appRouter, createContext: () => ({}) }),
 );
 
+app.use(express.text({ type: ["application/sdp", "text/plain"] }));
+
 app.listen(BACKEND_PORT, () => {
   console.log(`Backend API server running at http://localhost:${BACKEND_PORT}`);
 });
