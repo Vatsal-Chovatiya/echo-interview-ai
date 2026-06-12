@@ -26,7 +26,10 @@ export function Interview() {
       // Start the session using the Session Description Protocol (SDP)
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      const sdpResponse = await trpcClient.session.mutate({ sdp: offer.sdp! });
+      const sdpResponse = await trpcClient.session.mutate({
+        sdp: offer.sdp!,
+        interviewId: interviewId,
+      });
 
       const answer = {
         type: "answer" as "answer",

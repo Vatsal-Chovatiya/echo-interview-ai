@@ -1,8 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure } from "./trpc.js";
 import { z } from "zod";
-import { fetchUserRepositories } from "./scraper/github.js";
+import { fetchUserRepositories } from "./services/github.js";
 import { client } from "@repo/db";
+import { sideBand } from "./services/sideBand.js";
+
+
+//TODO: Extract the business logic from the routes and store somewhere else
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
@@ -47,6 +51,7 @@ export const appRouter = router({
     .input(
       z.object({
         sdp: z.string(),
+        interviewId: z.string().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -61,7 +66,7 @@ export const appRouter = router({
       fd.set("session", sessionConfig);
 
       try {
-        const r = await fetch("https://api.openai.com/v1/realtime/calls", {
+        const sdpResponse = await fetch("https://api.openai.com/v1/realtime/calls", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -70,7 +75,16 @@ export const appRouter = router({
           body: fd,
         });
         // Send back the SDP we received from the OpenAI REST API
-        const sdp = await r.text();
+        const sdp = await sdpResponse.text();
+        const location = sdpResponse.headers.get("Location");
+        const callId = location?.split("/").pop();
+        if (!callId) { 
+          throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve data from API",
+        });
+        }
+        sideBand(callId, input.interviewId);
         return ({
           sdp
         })
