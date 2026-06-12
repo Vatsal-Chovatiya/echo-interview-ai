@@ -11,17 +11,6 @@ const ws = new WebSocket(url, {
 
 ws.on("open", function open() {
   console.log("Connected to server.");
-
-  // Send client events over the WebSocket once connected
-  ws.send(
-    JSON.stringify({
-      type: "session.update",
-      session: {
-        type: "realtime",
-        instructions: "You are supposed to interview this user on their computer science intellect, Ask around 2-3 questions based on their experience, and use english language only.",
-      },
-    })
-  );
 });
 
  // Listen for and parse server events
@@ -29,6 +18,9 @@ ws.on("message", function incoming(message) {
   const parsedMessage = JSON.parse(message.toString());
   if (parsedMessage.type == "response.done") { 
     console.log(JSON.stringify(parsedMessage));
+  }
+  if (parsedMessage.type === "conversation.item.input_audio_transcription.completed") {
+    console.log("[Backend Sideband] User Transcript Completed:", parsedMessage.transcript);
   }
 });
 

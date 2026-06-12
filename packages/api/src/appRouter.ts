@@ -58,7 +58,14 @@ export const appRouter = router({
       const sessionConfig = JSON.stringify({
         type: "realtime",
         model: "gpt-realtime-2",
-        audio: { output: { voice: "marin" } },
+        instructions:
+          "You are supposed to interview this user on their computer science intellect, Ask around 2-3 questions based on their experience, and use english language only.",
+        audio: {
+          output: { voice: "marin" },
+          input: {
+            transcription: { model: "whisper-1" },
+          },
+        },
       });
 
       const fd = new FormData();

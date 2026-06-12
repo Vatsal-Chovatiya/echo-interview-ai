@@ -12,6 +12,28 @@ export function Interview() {
       // Create a peer connection
       const pc = new RTCPeerConnection();
 
+      // Create data channel for OpenAI Realtime events
+      const dc = pc.createDataChannel("oai-events");
+
+      dc.addEventListener("open", () => {
+        console.log("WebRTC DataChannel (oai-events) opened");
+      });
+
+      dc.addEventListener("message", (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === "conversation.item.input_audio_transcription.completed") {
+            console.log("[Frontend] User Transcript Completed:", data.transcript);
+          }
+        } catch (err) {
+          console.error("Error parsing WebRTC data channel event:", err);
+        }
+      });
+
+      dc.addEventListener("close", () => {
+        console.log("WebRTC DataChannel (oai-events) closed");
+      });
+
       // Set up to play remote audio from the model
       audioRef.current = document.createElement("audio");
       audioRef.current.autoplay = true;
