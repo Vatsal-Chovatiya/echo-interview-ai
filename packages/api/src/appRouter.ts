@@ -5,6 +5,7 @@ import { fetchUserRepositories } from "./services/github.js";
 import { client } from "@repo/db";
 import { sideBand } from "./services/sideBand.js";
 import { prismaClient } from "@repo/db";
+import { calculateResult } from "./services/result.js";
 
 //TODO: Extract the business logic from the routes and store somewhere else
 
@@ -102,6 +103,12 @@ export const appRouter = router({
           });
         }
         sideBand(callId, input.interviewId);
+        if (input.interviewId) {
+          await prismaClient.interview.update({
+            where: { id: input.interviewId },
+            data: { status: "InProgress" },
+          });
+        }
         return {
           sdp,
         };
@@ -113,6 +120,74 @@ export const appRouter = router({
           cause: error,
         });
       }
+    }),
+
+  result: publicProcedure
+    .input(
+      z.object({
+        interviewId: z.string().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      if (!input.interviewId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Interview ID is required",
+        });
+      }
+
+      const interview = await prismaClient.interview.findFirst({
+        where: {
+          id: input.interviewId,
+        },
+        include: {
+          conversations: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
+        },
+      });
+
+      if (!interview) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Interview not found",
+        });
+      }
+
+      let score = interview.score;
+      let feedback = interview.feedback || "";
+
+      if (interview.status === "InProgress") {
+        try {
+          const result = await calculateResult(interview.conversations);
+          await prismaClient.interview.update({
+            where: {
+              id: input.interviewId,
+            },
+            data: {
+              score: result.score,
+              feedback: result.feedback,
+              status: "Done",
+            },
+          });
+          score = result.score;
+          feedback = result.feedback;
+        } catch (error) {
+          console.error("Failed to calculate result:", error);
+        }
+      }
+
+      return {
+        score,
+        feedback,
+        transcript: interview.conversations.map((msg) => ({
+          type: msg.type,
+          content: msg.message,
+          createdAt: msg.createdAt,
+        })),
+      };
     }),
 });
 

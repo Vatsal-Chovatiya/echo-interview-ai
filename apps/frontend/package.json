@@ -9,6 +9,7 @@
     "build": "bun run build.ts"
   },
   "dependencies": {
+    "@repo/db": "*",
     "@radix-ui/react-slot": "^1.2.3",
     "@repo/api": "*",
     "@trpc/client": "^11.0.0-rc.822",

@@ -3,7 +3,11 @@
   "module": "src/db.ts",
   "type": "module",
   "exports": {
-    ".": "./src/db.ts"
+    ".": "./src/db.ts",
+    "./generated/prisma": {
+      "types": "./generated/prisma/index.d.ts",
+      "default": "./generated/prisma/index.js"
+    }
   },
   "private": true,
   "devDependencies": {
