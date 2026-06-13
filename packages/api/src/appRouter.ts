@@ -64,8 +64,7 @@ export const appRouter = router({
       const sessionConfig = JSON.stringify({
         type: "realtime",
         model: "gpt-realtime-2",
-        instructions:
-          `You are supposed to interview this user on their computer science intellect, Ask around 2-3 questions based on their experience, and use english language only.Here is everything about the users github, will give you a rough idea about what the user does-
+        instructions: `You are supposed to interview this user on their computer science intellect, Ask around 2-3 questions based on their experience, and use english language only.Here is everything about the users github, will give you a rough idea about what the user does-
           ## Github MetaData
           ${interview?.githubMetaData}`,
         audio: {
