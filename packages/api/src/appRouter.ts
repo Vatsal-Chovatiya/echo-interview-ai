@@ -4,7 +4,7 @@ import { z } from "zod";
 import { fetchUserRepositories } from "./services/github.js";
 import { client } from "@repo/db";
 import { sideBand } from "./services/sideBand.js";
-
+import { prismaClient } from "@repo/db";
 
 //TODO: Extract the business logic from the routes and store somewhere else
 
@@ -55,11 +55,19 @@ export const appRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
+      const interview = await prismaClient.interview.findFirst({
+        where: {
+          id: input.interviewId,
+        },
+      });
+
       const sessionConfig = JSON.stringify({
         type: "realtime",
         model: "gpt-realtime-2",
         instructions:
-          "You are supposed to interview this user on their computer science intellect, Ask around 2-3 questions based on their experience, and use english language only.",
+          `You are supposed to interview this user on their computer science intellect, Ask around 2-3 questions based on their experience, and use english language only.Here is everything about the users github, will give you a rough idea about what the user does-
+          ## Github MetaData
+          ${interview?.githubMetaData}`,
         audio: {
           output: { voice: "marin" },
           input: {
@@ -73,28 +81,31 @@ export const appRouter = router({
       fd.set("session", sessionConfig);
 
       try {
-        const sdpResponse = await fetch("https://api.openai.com/v1/realtime/calls", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            "OpenAI-Safety-Identifier": "hashed-user-id",
+        const sdpResponse = await fetch(
+          "https://api.openai.com/v1/realtime/calls",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+              "OpenAI-Safety-Identifier": "hashed-user-id",
+            },
+            body: fd,
           },
-          body: fd,
-        });
+        );
         // Send back the SDP we received from the OpenAI REST API
         const sdp = await sdpResponse.text();
         const location = sdpResponse.headers.get("Location");
         const callId = location?.split("/").pop();
-        if (!callId) { 
+        if (!callId) {
           throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to retrieve data from API",
-        });
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to retrieve data from API",
+          });
         }
         sideBand(callId, input.interviewId);
-        return ({
-          sdp
-        })
+        return {
+          sdp,
+        };
       } catch (error) {
         console.error("Token generation error:", error);
         throw new TRPCError({

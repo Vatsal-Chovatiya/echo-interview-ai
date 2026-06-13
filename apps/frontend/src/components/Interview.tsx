@@ -22,8 +22,14 @@ export function Interview() {
       dc.addEventListener("message", (e) => {
         try {
           const data = JSON.parse(e.data);
-          if (data.type === "conversation.item.input_audio_transcription.completed") {
-            console.log("[Frontend] User Transcript Completed:", data.transcript);
+          if (
+            data.type ===
+            "conversation.item.input_audio_transcription.completed"
+          ) {
+            console.log(
+              "[Frontend] User Transcript Completed:",
+              data.transcript,
+            );
           }
         } catch (err) {
           console.error("Error parsing WebRTC data channel event:", err);
@@ -58,7 +64,7 @@ export function Interview() {
         sdp: sdpResponse.sdp,
       };
       await pc.setRemoteDescription(answer);
-    })(); 
+    })();
   }, [interviewId]);
 
   return (
