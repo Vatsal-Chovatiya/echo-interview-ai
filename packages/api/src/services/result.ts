@@ -3,14 +3,22 @@ import { z } from "zod";
 
 const outputSchema = z.object({
   feedback: z.string().describe("Feedback for the user"),
-  score: z.number().int().min(0).max(100).describe("Interview score out of 100"),
+  score: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .describe("Interview score out of 100"),
 });
 
 export async function calculateResult(
   messages: { type: "Assistant" | "User"; message: string }[],
 ): Promise<{ feedback: string; score: number }> {
   const transcript = messages
-    .map((m) => `${m.type === "Assistant" ? "Interviewer" : "Candidate"}: ${m.message}`)
+    .map(
+      (m) =>
+        `${m.type === "Assistant" ? "Interviewer" : "Candidate"}: ${m.message}`,
+    )
     .join("\n\n");
 
   const data = JSON.stringify({
@@ -63,4 +71,3 @@ You must respond with a valid JSON object matching the schema below:
     throw error;
   }
 }
-

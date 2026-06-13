@@ -9,6 +9,8 @@ import { calculateResult } from "./services/result.js";
 
 //TODO: Extract the business logic from the routes and store somewhere else
 
+const resultInFlight = new Set<string>();
+
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
     return {
@@ -158,8 +160,14 @@ export const appRouter = router({
 
       let score = interview.score;
       let feedback = interview.feedback || "";
+      let status = interview.status;
 
-      if (interview.status === "InProgress") {
+      if (
+        status === "InProgress" &&
+        interview.conversations.length > 0 &&
+        !resultInFlight.has(input.interviewId)
+      ) {
+        resultInFlight.add(input.interviewId);
         try {
           const result = await calculateResult(interview.conversations);
           await prismaClient.interview.update({
@@ -174,14 +182,18 @@ export const appRouter = router({
           });
           score = result.score;
           feedback = result.feedback;
+          status = "Done";
         } catch (error) {
           console.error("Failed to calculate result:", error);
+        } finally {
+          resultInFlight.delete(input.interviewId);
         }
       }
 
       return {
         score,
         feedback,
+        status,
         transcript: interview.conversations.map((msg) => ({
           type: msg.type,
           content: msg.message,

@@ -8,6 +8,7 @@ interface Result {
   transcript: { type: MessageType; content: string; createdAt: string }[];
   score: number;
   feedback: string;
+  status: "Done" | "InProgress" | "Pre";
 }
 
 export function Result() {
@@ -16,29 +17,33 @@ export function Result() {
     score: 0,
     feedback: "",
     transcript: [],
+    status: "Pre",
   });
   const navigate = useNavigate();
 
   useEffect(() => {
-    trpcClient.result
-      .query({
-        interviewId: interviewId,
-      })
-      .then((response) => {
-        setResult(response);
-      });
+    if (!interviewId) return;
 
-    const interval = setInterval(() => {
-      trpcClient.result
-        .query({
-          interviewId: interviewId,
-        })
-        .then((response) => {
-          setResult(response);
-        });
-    }, 5 * 1000);
+    let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
-    return () => clearInterval(interval);
+    const poll = async () => {
+      const response = await trpcClient.result.query({ interviewId });
+      if (cancelled) return;
+      setResult(response);
+      if (response.status === "Done" && interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    poll();
+    interval = setInterval(poll, 5 * 1000);
+
+    return () => {
+      cancelled = true;
+      if (interval) clearInterval(interval);
+    };
   }, [interviewId]);
 
   return (
@@ -51,34 +56,38 @@ export function Result() {
           Your feedback is being generated. You did a great job!
         </p>
         <div className="pt-4 space-y-4">
-          <div>
-            <strong>Score:</strong> {result.score}
-          </div>
-          <div>
-            <strong>Feedback:</strong> {result.feedback}
-          </div>
+          {result.status == "Done" && (
+            <div>
+              <div>
+                <strong>Score:</strong> {result.score}
+              </div>
+              <div>
+                <strong>Feedback:</strong> {result.feedback}
+              </div>
 
-          <div className="text-left mt-4">
-            <h2 className="text-lg font-bold mb-2">Transcript</h2>
-            <div className="space-y-2 max-h-60 overflow-y-auto border p-3 rounded text-left">
-              {result.transcript.map((t, idx) => (
-                <div key={idx} className="text-sm">
-                  <strong
-                    className={
-                      t.type === "User" ? "text-blue-600" : "text-green-600"
-                    }
-                  >
-                    {t.type}:
-                  </strong>{" "}
-                  <span>{t.content}</span>
+              <div className="text-left mt-4">
+                <h2 className="text-lg font-bold mb-2">Transcript</h2>
+                <div className="space-y-2 max-h-60 overflow-y-auto border p-3 rounded text-left">
+                  {result.transcript.map((t, idx) => (
+                    <div key={idx} className="text-sm">
+                      <strong
+                        className={
+                          t.type === "User" ? "text-blue-600" : "text-green-600"
+                        }
+                      >
+                        {t.type}:
+                      </strong>{" "}
+                      <span>{t.content}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <Button onClick={() => navigate("/")} className="w-full mt-4">
-            Go Home
-          </Button>
+              <Button onClick={() => navigate("/")} className="w-full mt-4">
+                Go Home
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
