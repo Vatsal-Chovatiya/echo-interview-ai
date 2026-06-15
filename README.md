@@ -79,26 +79,73 @@ DEEPSEEK_API_KEY="Bearer nvapi-..."
 
 Follow these steps to set up and run the project locally.
 
-### 1. Install Dependencies
+### 📋 Prerequisites
 
-Make sure you have [Bun](https://bun.sh/) installed.
+Before you start, make sure you have the following installed on your machine:
+
+- **Bun**: This project uses Bun as the runtime and package manager. Install it by running:
+  ```bash
+  curl -fsSL https://bun.sh/install | bash
+  ```
+- **PostgreSQL**: A running PostgreSQL database instance. You can run one locally (e.g., via Docker, Homebrew) or use a hosted PostgreSQL service (e.g., [Neon](https://neon.tech/)).
+
+### 1. Clone & Install Dependencies
+
+Clone this repository and install the dependencies from the project root:
 
 ```bash
 bun install
 ```
 
-### 2. Set Up Database Schema
+### 2. Configure Environment Variables
 
-Generate the Prisma Client and push the database schema to your database.
+You need to configure environment variables for both the database client and the backend server. Example files have been provided at `packages/db/.env.example` and `apps/backend/.env.example`.
+
+1. **Database Configuration**:
+   Create a `.env` file in `packages/db/`:
+
+   ```bash
+   cp packages/db/.env.example packages/db/.env
+   ```
+
+   Open `packages/db/.env` and update the database URL:
+
+   ```env
+   DATABASE_URL="postgresql://<username>:<password>@<host>/<database>?sslmode=require"
+   ```
+
+2. **Backend Configuration**:
+   Create a `.env` file in `apps/backend/`:
+
+   ```bash
+   cp apps/backend/.env.example apps/backend/.env
+   ```
+
+   Open `apps/backend/.env` and fill in the required API keys:
+
+   ```env
+   # Database connection (same as packages/db/.env)
+   DATABASE_URL="postgresql://<username>:<password>@<host>/<database>?sslmode=require"
+
+   # OpenAI API Key (Must support Realtime WebRTC and WebSockets)
+   OPENAI_API_KEY="sk-proj-..."
+
+   # DeepSeek API Key (For interview evaluation; NVIDIA API Catalog format: Bearer nvapi-...)
+   DEEPSEEK_API_KEY="Bearer nvapi-..."
+   ```
+
+### 3. Set Up Database Schema
+
+Generate the Prisma Client and sync the database schema with your PostgreSQL database:
 
 ```bash
-# From the project root, you can run prisma commands through bun
+# Push the schema and generate the Prisma Client
 bun x prisma db push --schema=packages/db/prisma/schema.prisma
 ```
 
-### 3. Run the Development Server
+### 4. Run the Development Server
 
-This will start both the frontend and backend applications concurrently using Turborepo.
+Start both the frontend and backend applications concurrently using Turborepo:
 
 ```bash
 bun dev
@@ -106,8 +153,8 @@ bun dev
 
 By default:
 
-- **Frontend** runs at: `http://localhost:3000`
-- **Backend** runs at: `http://localhost:3001`
+- **Frontend** runs at: [http://localhost:3000](http://localhost:3000)
+- **Backend** runs at: [http://localhost:3001](http://localhost:3001)
 
 ---
 
@@ -132,7 +179,7 @@ sequenceDiagram
     Backend->>Candidate: Return Remote SDP (Answer)
     Backend->>OpenAI: Establish WS Sideband (via Call ID)
 
-    Candidate<->>OpenAI: Realtime Audio & DataChannel (WebRTC)
+    Note over Candidate, OpenAI: Realtime Audio & DataChannel (WebRTC)
     OpenAI-->>Backend: Event (input_audio_transcription / response.done)
     Backend->>DB: Save Messages to DB (type: User / Assistant)
 

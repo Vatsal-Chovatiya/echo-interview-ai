@@ -216,8 +216,9 @@ export function Interview() {
         localStreamRef.current = ms;
         ms.getTracks().forEach((t) => pc.addTrack(t, ms));
 
-        const ctx = new (window.AudioContext ||
-          (window as any).webkitAudioContext)();
+        const ctx = new (
+          window.AudioContext || (window as any).webkitAudioContext
+        )();
         audioCtxRef.current = ctx;
 
         const userAnalyser = setupAnalysers(ctx, ms);
@@ -306,14 +307,12 @@ export function Interview() {
             <span
               className={cn(
                 "size-2 rounded-full",
-                connected ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground",
+                connected
+                  ? "bg-emerald-500 animate-pulse"
+                  : "bg-muted-foreground",
               )}
             />
-            {connecting
-              ? "Connecting…"
-              : connected
-                ? "Live"
-                : "Disconnected"}
+            {connecting ? "Connecting…" : connected ? "Live" : "Disconnected"}
           </div>
           {connected && (
             <div className="text-xs font-mono text-muted-foreground tabular-nums">
@@ -359,11 +358,7 @@ export function Interview() {
           disabled={!connected}
           className="rounded-full size-12 p-0"
         >
-          {muted ? (
-            <MicOff className="size-5" />
-          ) : (
-            <Mic className="size-5" />
-          )}
+          {muted ? <MicOff className="size-5" /> : <Mic className="size-5" />}
         </Button>
         <Button
           variant="destructive"

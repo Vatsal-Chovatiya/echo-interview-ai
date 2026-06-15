@@ -49,9 +49,7 @@ export function Form() {
           <div className="size-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center mb-4 shadow-lg">
             <Mic className="size-7" />
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            Echo
-          </h1>
+          <h1 className="text-4xl font-extrabold tracking-tight">Echo</h1>
           <p className="text-muted-foreground mt-2 text-sm">
             AI-powered technical interviews tailored to your GitHub profile.
           </p>

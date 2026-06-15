@@ -162,7 +162,6 @@ export const appRouter = router({
       let feedback = interview.feedback || "";
       let status = interview.status;
 
-
       if (feedback && status !== "Done") {
         await prismaClient.interview.update({
           where: { id: input.interviewId },

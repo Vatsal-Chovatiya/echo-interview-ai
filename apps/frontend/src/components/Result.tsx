@@ -1,11 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "./ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { useEffect, useState } from "react";
 import { trpcClient } from "@/lib/trpc";
 import { MessageType } from "@repo/db/generated/prisma";
@@ -157,9 +152,7 @@ export function Result() {
                         <div
                           className={cn(
                             "size-8 shrink-0 rounded-full flex items-center justify-center text-white",
-                            isUser
-                              ? "bg-sky-500"
-                              : "bg-violet-500",
+                            isUser ? "bg-sky-500" : "bg-violet-500",
                           )}
                         >
                           {isUser ? (
