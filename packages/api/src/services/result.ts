@@ -46,18 +46,26 @@ You must respond with a valid JSON object matching the schema below:
     stream: false,
   });
 
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) {
+    throw new Error("DEEPSEEK_API_KEY env var is not set");
+  }
+  const authHeader = apiKey.startsWith("Bearer ") ? apiKey : `Bearer ${apiKey}`;
+
   const config = {
     method: "post",
     maxBodyLength: Infinity,
     url: "https://integrate.api.nvidia.com/v1/chat/completions",
     headers: {
       "Content-Type": "application/json",
-      Authorization: process.env.DEEPSEEK_API_KEY!,
+      Authorization: authHeader,
     },
     data: data,
+    timeout: 60_000,
   };
 
   try {
+    console.log("[result] Calling evaluation API...");
     const response = await axios.request(config);
     const content = response.data.choices?.[0]?.message?.content;
     if (!content) {
@@ -65,9 +73,15 @@ You must respond with a valid JSON object matching the schema below:
     }
 
     const parsedJson = JSON.parse(content);
-    return outputSchema.parse(parsedJson);
-  } catch (error) {
-    console.error("Failed to generate or parse interview evaluation:", error);
+    const parsed = outputSchema.parse(parsedJson);
+    console.log("[result] Evaluation API success, score:", parsed.score);
+    return parsed;
+  } catch (error: any) {
+    console.error(
+      "Failed to generate or parse interview evaluation:",
+      error?.response?.status,
+      error?.response?.data || error?.message || error,
+    );
     throw error;
   }
 }

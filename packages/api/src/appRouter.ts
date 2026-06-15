@@ -162,32 +162,41 @@ export const appRouter = router({
       let feedback = interview.feedback || "";
       let status = interview.status;
 
+
+      if (feedback && status !== "Done") {
+        await prismaClient.interview.update({
+          where: { id: input.interviewId },
+          data: { status: "Done" },
+        });
+        status = "Done";
+      }
+
+      const interviewId = input.interviewId;
       if (
         status === "InProgress" &&
+        !feedback &&
         interview.conversations.length > 0 &&
-        !resultInFlight.has(input.interviewId)
+        !resultInFlight.has(interviewId)
       ) {
-        resultInFlight.add(input.interviewId);
-        try {
-          const result = await calculateResult(interview.conversations);
-          await prismaClient.interview.update({
-            where: {
-              id: input.interviewId,
-            },
-            data: {
-              score: result.score,
-              feedback: result.feedback,
-              status: "Done",
-            },
-          });
-          score = result.score;
-          feedback = result.feedback;
-          status = "Done";
-        } catch (error) {
-          console.error("Failed to calculate result:", error);
-        } finally {
-          resultInFlight.delete(input.interviewId);
-        }
+        resultInFlight.add(interviewId);
+        void (async () => {
+          try {
+            const result = await calculateResult(interview.conversations);
+            await prismaClient.interview.update({
+              where: { id: interviewId },
+              data: {
+                score: result.score,
+                feedback: result.feedback,
+                status: "Done",
+              },
+            });
+            console.log(`[result] Calculated result for ${interviewId}`);
+          } catch (error) {
+            console.error("Failed to calculate result:", error);
+          } finally {
+            resultInFlight.delete(interviewId);
+          }
+        })();
       }
 
       return {
@@ -203,5 +212,4 @@ export const appRouter = router({
     }),
 });
 
-// Export only the type definition of the router to avoid importing server-side code on the client
 export type AppRouter = typeof appRouter;
